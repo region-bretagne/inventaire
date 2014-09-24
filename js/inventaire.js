@@ -93,9 +93,24 @@
             });
             _applyInitialUIState();
             _applyMargins();
+            
+            $("#search").typeahead(
+                {onSelect: function(item) {                    
+                    var p = item.value.split(",");
+                    var pt = [parseFloat(p[0]),parseFloat(p[1])];
+                    var projpt= ol.proj.transform(pt, 'EPSG:4326', 'EPSG:3857');
+                    console.log(projpt);
+                    inventaire.zoomToLocation(projpt, 14);
+                }});
+            
+            $(document).on("keypress", "#search", function (e) {
+                if ($(this).val().length >= 2) {
+                    inventaire.geoCompletion($(this).val() + String.fromCharCode(e.charCode));
+                }
+            });
         },
         /**
-         * Public Method: test2
+         * Public Method: layerChange
          *
          */
 
@@ -104,6 +119,45 @@
              for (i = 0, ii = _layers.length; i < ii; ++i) {
                 _layers[i].set('visible', (i == id));
             }
+        },
+        
+        zoomToLocation: function (point, zoom) {
+            _map.getView().setCenter(point);
+            _map.getView().setZoom(zoom);
+        },
+        
+        geoCompletion: function (val) {
+            var url = "http://api.geonames.org/searchJSON?";
+            var q = (val)?val:$("#search").val();            
+            $.ajax({
+                    type: "GET",
+                    url: url,
+                    crossDomain: true,
+                    data: {
+                        username: "georchestra",
+                        country:"FR",
+                        style:"short",
+                        lang:"fr",
+                        featureClass:"P",
+                        maxRows:20,
+                        name_startsWith:val,
+                        callback:"stcCallback1001"                        
+                    },
+                    dataType: "jsonp",
+                    success: function (data) {                        
+                        var a = $("#search").typeahead();
+                        var src = [];
+                        for (var i = 0; i<data.geonames.length; i++) {
+                            var obj = {id:data.geonames[i].lng + "," + data.geonames[i].lat,name:data.geonames[i].name};
+                            src.push(obj);
+                            
+                        }
+                        a.data('typeahead').source = src;
+                        $( "#search" ).focus();
+                        $( "#search" ).trigger( "keyup" );
+                    }
+                });         
+            
         }
     
     }; // Fin return 

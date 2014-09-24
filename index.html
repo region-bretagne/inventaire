@@ -12,6 +12,7 @@
     <script type="text/javascript" src="lib/openlayers/ol.js"></script>
     <script type="text/javascript" src="lib/jquery/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/js/bootstrap-typeahead.min.js"></script>    
     <script type="text/javascript" src="js/inventaire.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -37,9 +38,9 @@
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">            
             <form class="navbar-form navbar-left" role="search">
               <div class="form-group">
-                <input type="text" class="form-control" placeholder="Rue, adresse...">
+                <input id="search" type="text" class="form-control" placeholder="Rue, adresse..." data-provide="typeahead">
               </div>
-              <button type="submit" class="btn btn-default">Localiser</button>
+              <button type="submit" class="btn btn-default" onclick="inventaire.zoomToLocation();">Localiser</button>
             </form>
             <ul class="nav navbar-nav navbar-right">
               <li class="dropdown">
