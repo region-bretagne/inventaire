@@ -48,7 +48,7 @@
                 <ul class="dropdown-menu dropdown-menu-form">
                   <li><label class="checkbox checkbox-geolocation" for="track"><input id="track" type="checkbox">Géolocalisation</label></li>
                   <li class="divider"></li>
-                  <li><a href="#">Saisir une nouvelle fiche</a></li>                  
+                  <li><a href="#" data-toggle="modal" data-target="#fiche">Saisir une nouvelle fiche</a></li>                  
                 </ul>
               </li>
               <li><a href="#">Aide</a></li>              
@@ -59,6 +59,38 @@
         </div>
       </nav>
       <div class="navbar-offset"></div>
+      <!-- Fiche Modale -->
+        <div class="modal fade" id="fiche" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="myModalLabel">Inventaire (fiche)</h4>
+              </div>
+              <div class="modal-body">
+                <form class="form-horizontal" role="form">
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label">Email</label>
+                    <div class="col-sm-10">
+                      <p class="form-control-static">email@example.com</p>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputPassword" class="col-sm-2 control-label">Password</label>
+                    <div class="col-sm-10">
+                      <input type="password" class="form-control" id="inputPassword" 
+                         placeholder="Password">
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary">Enregistrer</button>
+              </div>
+            </div>
+          </div>
+        </div>
       <div id="map">
       </div>
       <div class="row main-row">
