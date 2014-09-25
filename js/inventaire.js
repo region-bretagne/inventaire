@@ -6,6 +6,12 @@
     
     var _map = null;
     
+    var _projection = null;
+    
+    var _WMTSTileMatrix = {};
+    
+    var _WMTSTileResolutions = {};
+    
     var _layers = null;
     
     var _center = [-403013.39038929436,6128402.399153711];
@@ -71,22 +77,96 @@
 
             $(window).on("resize", _applyMargins);
             
+            // Carto
+            _projection = ol.proj.get("EPSG:3857");            
+            var projectionExtent = _projection.getExtent();
+            var size = ol.extent.getWidth(projectionExtent) / 256; 
+            _WMTSTileMatrix = {'EPSG:3857': [], 'PM':[]};
+            _WMTSTileResolutions = {'EPSG:3857': [], 'PM':[]};
+            for (var z = 0; z < 22; ++z) {
+                    // generate resolutions and matrixIds arrays for this Geobretagne WMTS
+                    _WMTSTileResolutions['EPSG:3857'][z] = size / Math.pow(2, z);
+                    _WMTSTileMatrix['EPSG:3857'][z] = 'EPSG:3857:' + z;
+            }
+             for (var z = 0; z < 20; ++z) {
+                    // generate resolutions and matrixIds arrays for this Geobretagne WMTS
+                    _WMTSTileResolutions['PM'][z] = size / Math.pow(2, z);
+                    _WMTSTileMatrix['PM'][z] = z;
+            }          
+                                       
+            var matrixset = 'PM';     
+                                       
+            var ortho = new ol.layer.Tile({
+              visible: false,
+              source: new ol.source.WMTS({
+                url:  "../wmts",
+                layer: "ORTHOIMAGERY.ORTHOPHOTOS",
+                matrixSet: matrixset,
+                style: "normal",
+                format: "image/jpeg",
+                attributions: [new ol.Attribution({html:"<a href='http://www.geoportail.fr/' target='_blank'><img src='http://api.ign.fr/geoportail/api/js/latest/theme/geoportal/img/logo_gp.gif'></a>"})],
+                projection: _projection,
+                tileGrid: new ol.tilegrid.WMTS({
+                  origin: ol.extent.getTopLeft(projectionExtent),
+                  resolutions: _WMTSTileResolutions[matrixset],
+                  matrixIds: _WMTSTileMatrix[matrixset]
+                })
+              })
+            }); 
+
+            var scan = new ol.layer.Tile({
+              visible: false,
+              source: new ol.source.WMTS({
+                url:  "../wmts",
+                layer: "GEOGRAPHICALGRIDSYSTEMS.MAPS",
+                matrixSet: matrixset,
+                style: "normal",
+                format: "image/jpeg",
+                attributions: [new ol.Attribution({html:"<a href='http://www.geoportail.fr/' target='_blank'><img src='http://api.ign.fr/geoportail/api/js/latest/theme/geoportal/img/logo_gp.gif'></a>"})],
+                projection: _projection,
+                tileGrid: new ol.tilegrid.WMTS({
+                  origin: ol.extent.getTopLeft(projectionExtent),
+                  resolutions: _WMTSTileResolutions[matrixset],
+                  matrixIds: _WMTSTileMatrix[matrixset]
+                })
+              })
+            });
+
+            var cadastre = new ol.layer.Tile({
+              visible: false,
+              source: new ol.source.WMTS({
+                url:  "../wmts",
+                layer: "CADASTRALPARCELS.PARCELS",
+                matrixSet: matrixset,
+                style: "bdparcellaire",
+                format: "image/png",
+                attributions: [new ol.Attribution({html:"<a href='http://www.geoportail.fr/' target='_blank'><img src='http://api.ign.fr/geoportail/api/js/latest/theme/geoportal/img/logo_gp.gif'></a>"})],
+                projection: _projection,
+                tileGrid: new ol.tilegrid.WMTS({
+                  origin: ol.extent.getTopLeft(projectionExtent),
+                  resolutions: _WMTSTileResolutions[matrixset],
+                  matrixIds: _WMTSTileMatrix[matrixset]
+                })
+              })
+            });  
+
+            //
+            
             _layers = [                
                   new ol.layer.Tile({
                     style: 'Road',                    
                     source: new ol.source.MapQuest({layer: 'osm'})
                   }),
-                  new ol.layer.Tile({
-                    style: 'Aerial',                    
-                    visible: false,
-                    source: new ol.source.MapQuest({layer: 'sat'})
-                  })
+                  ortho,
+                  scan,
+                  cadastre
             ];
 
             _map = new ol.Map({
               target: "map",
               layers: _layers,
               view: new ol.View({
+                projection: _projection,
                 center: _center,
                 zoom: _zoom
               })
