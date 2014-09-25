@@ -41,3 +41,7 @@ padding: 0 8px;
 border-radius: 4px;
 cursor: pointer;
 }
+
+.checkbox-geolocation{
+padding-left: 30px;
+}

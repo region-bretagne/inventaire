@@ -8,6 +8,8 @@
     
     var _projection = null;
     
+    var _geolocation = null;
+    
     var _WMTSTileMatrix = {};
     
     var _WMTSTileResolutions = {};
@@ -173,6 +175,40 @@
             });
             _applyInitialUIState();
             _applyMargins();
+            
+            var _geolocation = new ol.Geolocation({
+              projection: _projection
+            });
+
+            var track = new ol.dom.Input(document.getElementById('track'));
+            track.bindTo('checked', _geolocation, 'tracking');
+            
+            _geolocation.on('change', function() {
+                  console.log(_geolocation.getAccuracy() + ' [m]');
+                  console.log(_geolocation.getAltitude() + ' [m]');
+                  console.log(_geolocation.getAltitudeAccuracy() + ' [m]');
+                  console.log(_geolocation.getHeading() + ' [rad]');
+                  console.log(_geolocation.getSpeed() + ' [m/s]');
+                });
+
+                // handle geolocation error.
+            _geolocation.on('error', function(error) {                  
+                  console.log(error.message);
+                });
+                
+            var accuracyFeature = new ol.Feature();
+            accuracyFeature.bindTo('geometry', _geolocation, 'accuracyGeometry');
+
+            var positionFeature = new ol.Feature();
+            positionFeature.bindTo('geometry', _geolocation, 'position')
+                .transform(function() {}, function(coordinates) {
+                  return coordinates ? new ol.geom.Point(coordinates) : null;
+                });
+
+            var featuresOverlay = new ol.FeatureOverlay({
+              map: _map,
+              features: [accuracyFeature, positionFeature]
+            });
             
             $("#search").typeahead(
                 {onSelect: function(item) {                    
