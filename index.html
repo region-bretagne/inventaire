@@ -8,11 +8,12 @@
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" />   
     <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" />
     <title>Inventaire du patrimoine</title>
-    <link rel="stylesheet" href="css/inventaire.css" />  
-    <script type="text/javascript" src="lib/openlayers/ol.js"></script>
+    <link rel="stylesheet" href="css/inventaire.css" /> 
+    <script type="text/javascript" src="lib/proj4js/1.1.0/proj4js-compressed.js"></script>    
     <script type="text/javascript" src="lib/jquery/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="lib/bootstrap/js/bootstrap-typeahead.min.js"></script>    
+    <script type="text/javascript" src="lib/bootstrap/js/bootstrap-typeahead.min.js"></script>   
+    <script type="text/javascript" src="lib/openlayers/ol.js"></script>
     <script type="text/javascript" src="js/inventaire.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -47,8 +48,9 @@
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Menu <b class="caret"></b></a>
                 <ul class="dropdown-menu dropdown-menu-form">
                   <li><label class="checkbox checkbox-geolocation" for="track"><input id="track" type="checkbox">Géolocalisation</label></li>
-                  <li class="divider"></li>
-                  <li><a href="#" data-toggle="modal" data-target="#fiche">Saisir une nouvelle fiche</a></li>                  
+                  <li class="divider"></li>                  
+                  <li><a href="#" data-toggle="modal" onclick="inventaire.addInteraction();">Saisir une nouvelle fiche</a></li>
+                  <li><a href="#" data-toggle="modal" onclick="inventaire.removeInteraction();">Effacer les points</a></li>
                 </ul>
               </li>
               <li><a href="#">Aide</a></li>              
@@ -65,7 +67,7 @@
             <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title" id="myModalLabel">Inventaire (fiche)</h4>
+                <h4 class="modal-title" id="fichelabel">Inventaire (fiche)</h4>
               </div>
               <div class="modal-body">
                 <form class="form-horizontal" role="form">

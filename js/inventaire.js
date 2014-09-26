@@ -6,6 +6,12 @@
     
     var _map = null;
     
+    var _vector = null;
+    
+    var _source = new ol.source.Vector();
+    
+    var draw = null;
+    
     var _projection = null;
     
     var _geolocation = null;
@@ -48,7 +54,8 @@
           $(".sidebar-left .sidebar-body").fadeOut('slide');
           $('.mini-submenu-left').fadeIn();
         }
-    };
+    };    
+
     
     /*
      * Public
@@ -62,6 +69,11 @@
          */
 
         init: function () {
+        
+            Proj4js.defs["EPSG:3857"] = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
+            Proj4js.defs["EPSG:2154"] = "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+            Proj4js.defs["EPSG:4326"] = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
+            
             $('.sidebar-left .slide-submenu').on('click',function() {
               var thisEl = $(this);
               thisEl.closest('.sidebar-body').fadeOut('slide',function(){
@@ -163,6 +175,25 @@
                   scan,
                   cadastre
             ];
+                        
+            _vector = new ol.layer.Vector({
+              source: _source,
+              style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                  color: '#ffcc33',
+                  width: 2
+                }),
+                image: new ol.style.Circle({
+                  radius: 7,
+                  fill: new ol.style.Fill({
+                    color: '#ffcc33'
+                  })
+                })
+              })
+            });
 
             _map = new ol.Map({
               target: "map",
@@ -173,8 +204,20 @@
                 zoom: _zoom
               })
             });
+            
+            _map.addLayer(_vector);
             _applyInitialUIState();
             _applyMargins();
+            
+            _source.on('addfeature', function(event) {
+                var pos=event.feature.getGeometry().getCoordinates();
+                var src = new Proj4js.Proj('EPSG:3857');
+                var dest = new Proj4js.Proj('EPSG:2154'); 
+                var p = new Proj4js.Point(pos[0],pos[1]);  
+                Proj4js.transform(src, dest, p);               
+                $("#fichelabel").text("Position : " + p);
+                $('#fiche').modal('show');                
+            });
             
             var _geolocation = new ol.Geolocation({
               projection: _projection
@@ -224,6 +267,20 @@
                     inventaire.geoCompletion($(this).val() + String.fromCharCode(e.charCode));
                 }
             });
+        },
+        
+        addInteraction : function () {
+          _draw = new ol.interaction.Draw({
+              source: _source,
+              type: 'Point'
+            });
+            _map.addInteraction(_draw);
+          
+        },
+        
+        removeInteraction : function () {
+            _source.clear();
+            _map.removeInteraction(_draw);
         },
         /**
          * Public Method: layerChange
