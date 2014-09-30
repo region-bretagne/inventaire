@@ -54,7 +54,35 @@
           $(".sidebar-left .sidebar-body").fadeOut('slide');
           $('.mini-submenu-left').fadeIn();
         }
-    };    
+    };
+
+    var _getGeometryParcel = function (x,y) {
+        var postdata = ['<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS"',
+            'version="1.1.0" outputFormat="json" xsi:schemaLocation="http://www.opengis.net/wfs',
+            'http://schemas.opengis.net/wfs/1.1.0/WFS-transaction.xsd"',
+            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">',
+            '<wfs:Query typeName="cadastre:CP.CadastralParcel" srsName="EPSG:2154"',
+            'xmlns:feature="http://geobretagne.fr/ns/cadastre">',
+            '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">',
+            '<ogc:Contains><ogc:PropertyName>geometry</ogc:PropertyName>',
+            '<gml:MultiPoint srsName="http://www.opengis.net/gml/srs/epsg.xml#2154"',
+            'xmlns:gml="http://www.opengis.net/gml"><gml:pointMember><gml:Point>',
+            '<gml:coordinates decimal="." cs="," ts=" ">'+x+','+y+'</gml:coordinates>',
+            '</gml:Point></gml:pointMember></gml:MultiPoint></ogc:Contains></ogc:Filter>',
+            '</wfs:Query></wfs:GetFeature>'].join(' ');            
+            
+        $.ajax({
+            type: 'POST',
+            url:'../cadastre?',
+            contentType: 'application/xml',
+            data: postdata,            
+            success: function (data) {
+                console.log(data.features[0]);
+                $("#geojson").text(JSON.stringify(data.features[0].geometry));
+            }
+        });
+        
+    };
 
     
     /*
@@ -213,8 +241,9 @@
                 var pos=event.feature.getGeometry().getCoordinates();
                 var src = new Proj4js.Proj('EPSG:3857');
                 var dest = new Proj4js.Proj('EPSG:2154'); 
-                var p = new Proj4js.Point(pos[0],pos[1]);  
-                Proj4js.transform(src, dest, p);               
+                var p = new Proj4js.Point(pos[0],pos[1]);                
+                Proj4js.transform(src, dest, p);
+                _getGeometryParcel(p.x,p.y);                
                 $("#fichelabel").text("Position : " + p);
                 $('#fiche').modal('show');                
             });
