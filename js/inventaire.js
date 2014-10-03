@@ -63,6 +63,7 @@
     };
 
     var _getGeometryBuilding = function (x,y) {
+         _sourcePoly.clear();         
         var postdata = ['<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS"',
             'version="1.1.0" outputFormat="json" xsi:schemaLocation="http://www.opengis.net/wfs',
             'http://schemas.opengis.net/wfs/1.1.0/WFS-transaction.xsd"',
@@ -83,11 +84,13 @@
             contentType: 'application/xml',
             data: postdata,            
             success: function (data) {
-                if (data.features && data.features.length > 0) {
-                    console.log(data.features[0]);
-                    //$("#geojson").text(JSON.stringify(data.features[0].geometry));
+                if (data.features && data.features.length > 0) {                    
+                     var l93_features = new ol.format.GeoJSON().readFeatures(data.features[0]);
+                     var json_output = new ol.format.GeoJSON().writeGeometry(l93_features[0].getGeometry());
+                     console.log("geojson",json_output);
                      var features = new ol.format.GeoJSON().readFeatures(data.features[0],{dataProjection: _l93, featureProjection: _projection});
-                     _sourcePoly.addFeatures(features);
+                     _sourcePoly.addFeatures(features);                     
+                     $('#fiche').modal('show');               
                 }
             }
         });
@@ -270,15 +273,22 @@
             _applyMargins();
             
             _sourcePoint.on('addfeature', function(event) {
+                //delete all others features
+                var oldfeature = null;                
+                _sourcePoint.forEachFeature(function(feature) {
+                    if (feature != event.feature) {
+                        oldfeature = feature;
+                    }
+                });
+                if (oldfeature) {_sourcePoint.removeFeature(oldfeature);}
                 var pos=event.feature.getGeometry().getCoordinates();
                 /*var src = new Proj4js.Proj('EPSG:3857');
                 var dest = new Proj4js.Proj('EPSG:2154'); 
                 var p = new Proj4js.Point(pos[0],pos[1]);                
                 Proj4js.transform(src, dest, p);*/
                 var p = ol.proj.transform(pos,_projection,_l93);
-                _getGeometryBuilding(p[0],p[1]);                
+                _getGeometryBuilding(p[0],p[1]);  
                 $("#fichelabel").text("Position : " + p);
-                $('#fiche').modal('show');                
             });
             
             var _geolocation = new ol.Geolocation({
