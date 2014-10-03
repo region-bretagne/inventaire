@@ -63,7 +63,8 @@
     };
 
     var _getGeometryBuilding = function (x,y) {
-         _sourcePoly.clear();         
+         _sourcePoly.clear();
+        $("#geojson").text("En attente...");         
         var postdata = ['<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS"',
             'version="1.1.0" outputFormat="json" xsi:schemaLocation="http://www.opengis.net/wfs',
             'http://schemas.opengis.net/wfs/1.1.0/WFS-transaction.xsd"',
@@ -89,7 +90,8 @@
                      var json_output = new ol.format.GeoJSON().writeGeometry(l93_features[0].getGeometry());
                      console.log("geojson",json_output);
                      var features = new ol.format.GeoJSON().readFeatures(data.features[0],{dataProjection: _l93, featureProjection: _projection});
-                     _sourcePoly.addFeatures(features);                     
+                     _sourcePoly.addFeatures(features);
+                    $("#geojson").text(JSON.stringify(json_output));
                      $('#fiche').modal('show');               
                 }
             }
@@ -225,19 +227,16 @@
                         
             _vectorPoint = new ol.layer.Vector({
               source: _sourcePoint,
-              style: new ol.style.Style({
-                fill: new ol.style.Fill({
-                  color: 'rgba(255, 255, 255, 0.2)'
-                }),
-                stroke: new ol.style.Stroke({
-                  color: '#ffcc33',
-                  width: 2
-                }),
+              style: new ol.style.Style({                
                 image: new ol.style.Circle({
                   radius: 7,
                   fill: new ol.style.Fill({
-                    color: 'red'
-                  })
+                    color: '#ffffff'
+                  }),
+                  stroke: new ol.style.Stroke({
+                  color: '#0099FF',
+                  width: 2
+                })
                 })
               })
             });
@@ -246,11 +245,11 @@
               source: _sourcePoly,
               style: new ol.style.Style({
                 stroke: new ol.style.Stroke({
-                  color: 'red',
+                  color: '#0099FF',
                   width: 1
                 }),
                 fill: new ol.style.Fill({
-                  color: 'rgba(255, 255, 0, 0.5)'
+                  color: 'rgba(0, 153, 255, 0.2)'
                 })
               })
             });
@@ -288,7 +287,7 @@
                 Proj4js.transform(src, dest, p);*/
                 var p = ol.proj.transform(pos,_projection,_l93);
                 _getGeometryBuilding(p[0],p[1]);  
-                $("#fichelabel").text("Position : " + p);
+                //$("#fichelabel").text("Position : " + p);
             });
             
             var _geolocation = new ol.Geolocation({
