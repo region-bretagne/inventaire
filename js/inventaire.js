@@ -64,22 +64,24 @@
     
     var _parseJsonFeature = function (features) {
          var l93_features = new ol.format.GeoJSON().readFeatures(features[0]);
-         var json_output = new ol.format.GeoJSON().writeGeometry(l93_features[0].getGeometry());
-         console.log("geojson",json_output);
+         var json_output = new ol.format.GeoJSON().writeGeometry(l93_features[0].getGeometry());         
          var features = new ol.format.GeoJSON().readFeatures(features[0],
             {dataProjection: _l93, featureProjection: _projection});
          _sourcePoly.addFeatures(features);
          var geojson_poly = JSON.stringify(json_output);
-         $.event.trigger({
+         var evt = {
             type: "gertrude-poly",
             message: "Récupération du référentiel cadastral réussie!",
             geojson_poly: geojson_poly,
             time: new Date()
-        });
+         };
+         $.event.trigger(evt);
+        console.log('gertrude-event',evt);
+        inventaire.removeInteraction();
     };
 
     var _getCadastreGeometry = function (x,y) {
-        $.event.trigger({
+        var evt = {
             type: "gertrude-point",
             message: "Récupération de la parcelle cadastrale réussie!",
             geojson_point: JSON.stringify(
@@ -88,7 +90,9 @@
                 )
             ),
             time: new Date()
-        });
+        };
+        $.event.trigger(evt);
+        console.log('gertrude-event',evt);
          _sourcePoly.clear();
          $.ajax({
             type: "GET",
@@ -107,6 +111,7 @@
             contentType: "application/json",
             jsonp: false,
             jsonpCallback: "parseResponse",
+            timeout: 3000,
             success: function (data) {                
                 if (data.features && data.features.length > 0) {                    
                      _parseJsonFeature(data.features);                                    
@@ -132,9 +137,23 @@
                             if (data.features && data.features.length > 0) {                    
                                _parseJsonFeature(data.features);
                             }
+                        },                        
+                        error: function () {  //fixme Ne fonctionne pas avec jsonp               
+                            $.event.trigger({
+                                type: "gertrude-error",
+                                message: "Récupération cadastrale en erreur!",                    
+                                time: new Date()
+                            });
                         }
                      });
                 }
+            },
+            error: function () { //fixme Ne fonctionne pas avec jsonp               
+                $.event.trigger({
+                    type: "gertrude-error",
+                    message: "Récupération cadastrale en erreur!",                    
+                    time: new Date()
+                });
             }
         });
     };
@@ -372,6 +391,8 @@
         },
         
         addInteraction : function () {
+          _sourcePoint.clear();
+          _sourcePoly.clear();
           _draw = new ol.interaction.Draw({
               source: _sourcePoint,
               type: 'Point'
@@ -381,8 +402,8 @@
         },
         
         removeInteraction : function () {
-            _sourcePoint.clear();
-            _sourcePoly.clear();
+            //_sourcePoint.clear();
+            //_sourcePoly.clear();
             _map.removeInteraction(_draw);
         },
         /**
