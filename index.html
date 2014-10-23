@@ -8,8 +8,7 @@
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" />   
     <link rel="stylesheet" href="lib/font-awesome/css/font-awesome.min.css" />
     <title>Inventaire du patrimoine</title>
-    <link rel="stylesheet" href="css/inventaire.css" /> 
-    <!--<script type="text/javascript" src="lib/proj4js/1.1.0/proj4js-compressed.js"></script>-->
+    <link rel="stylesheet" href="css/inventaire.css" />    
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/proj4js/2.2.1/proj4.js"></script>    
     <script type="text/javascript" src="http://epsg.io/2154.js"></script>    
     <script type="text/javascript" src="lib/jquery/jquery-2.1.1.min.js"></script>
@@ -64,38 +63,7 @@
           </nav>
         </div>
       </nav>
-      <div class="navbar-offset"></div>
-      <!-- Fiche Modale -->
-        <div class="modal fade" id="fiche" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title" id="fichelabel">Inventaire (fiche)</h4>
-              </div>
-              <div class="modal-body">
-                <form class="form-horizontal" role="form">
-                  <div class="form-group">
-                    <label for="frmtitle" class="col-sm-2 control-label">Désignation</label>
-                    <div class="col-sm-10">
-                      <input type="text" class="form-control" placeholder="Désignation  de l'oeuvre" id="frmtitle">
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="col-sm-2 control-label">Geométrie</label>
-                    <div class="col-sm-10">
-                      <code id ="geojson">geojson</code>
-                    </div>
-                  </div>                  
-                </form>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-primary">Enregistrer</button>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="navbar-offset"></div>     
       <div id="map">
       </div>
       <div class="row main-row">
