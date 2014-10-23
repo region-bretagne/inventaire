@@ -61,42 +61,82 @@
           $('.mini-submenu-left').fadeIn();
         }
     };
+    
+    var _parseJsonFeature = function (features) {
+         var l93_features = new ol.format.GeoJSON().readFeatures(features[0]);
+         var json_output = new ol.format.GeoJSON().writeGeometry(l93_features[0].getGeometry());
+         console.log("geojson",json_output);
+         var features = new ol.format.GeoJSON().readFeatures(features[0],
+            {dataProjection: _l93, featureProjection: _projection});
+         _sourcePoly.addFeatures(features);
+         var geojson_poly = JSON.stringify(json_output);
+         $.event.trigger({
+            type: "gertrude-poly",
+            message: "Récupération du référentiel cadastral réussie!",
+            geojson_poly: geojson_poly,
+            time: new Date()
+        });
+    };
 
-    var _getGeometryBuilding = function (x,y) {
+    var _getCadastreGeometry = function (x,y) {
+        $.event.trigger({
+            type: "gertrude-point",
+            message: "Récupération de la parcelle cadastrale réussie!",
+            geojson_point: JSON.stringify(
+                new ol.format.GeoJSON().writeFeature(
+                    new ol.Feature({geometry: new ol.geom.Point([x,y])})
+                )
+            ),
+            time: new Date()
+        });
          _sourcePoly.clear();
-        $("#geojson").text("En attente...");         
-        var postdata = ['<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS"',
-            'version="1.1.0" outputFormat="json" xsi:schemaLocation="http://www.opengis.net/wfs',
-            'http://schemas.opengis.net/wfs/1.1.0/WFS-transaction.xsd"',
-            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">',
-            '<wfs:Query typeName="cadastre:CP.CadastralBuilding" srsName="EPSG:2154"',
-            'xmlns:feature="http://geobretagne.fr/ns/cadastre">',
-            '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">',
-            '<ogc:Contains><ogc:PropertyName>geometry</ogc:PropertyName>',
-            '<gml:MultiPoint srsName="http://www.opengis.net/gml/srs/epsg.xml#2154"',
-            'xmlns:gml="http://www.opengis.net/gml"><gml:pointMember><gml:Point>',
-            '<gml:coordinates decimal="." cs="," ts=" ">'+x+','+y+'</gml:coordinates>',
-            '</gml:Point></gml:pointMember></gml:MultiPoint></ogc:Contains></ogc:Filter>',
-            '</wfs:Query></wfs:GetFeature>'].join(' ');            
-            
-        $.ajax({
-            type: 'POST',
-            url:'../cadastre?',
-            contentType: 'application/xml',
-            data: postdata,            
-            success: function (data) {
+         $.ajax({
+            type: "GET",
+            url: "http://geobretagne.fr/geoserver/cadastre/wfs?",
+            crossDomain: true,
+            data: {
+                service: "wfs",
+                version: "1.1.0",
+                request: "GetFeature",
+                typeNames:"cadastre:CP.CadastralBuilding",
+                srsName: "EPSG:2154",
+                outputFormat:"text/javascript",
+                bbox: (x-0.5)+","+(y-0.5)+","+(x+0.5)+","+(y+0.5)                                              
+            },
+            dataType: "jsonp",
+            contentType: "application/json",
+            jsonp: false,
+            jsonpCallback: "parseResponse",
+            success: function (data) {                
                 if (data.features && data.features.length > 0) {                    
-                     var l93_features = new ol.format.GeoJSON().readFeatures(data.features[0]);
-                     var json_output = new ol.format.GeoJSON().writeGeometry(l93_features[0].getGeometry());
-                     console.log("geojson",json_output);
-                     var features = new ol.format.GeoJSON().readFeatures(data.features[0],{dataProjection: _l93, featureProjection: _projection});
-                     _sourcePoly.addFeatures(features);
-                    $("#geojson").text(JSON.stringify(json_output));
-                     $('#fiche').modal('show');               
+                     _parseJsonFeature(data.features);                                    
+                } else {
+                    $.ajax({
+                        type: "GET",
+                        url: "http://geobretagne.fr/geoserver/cadastre/wfs?",
+                        crossDomain: true,
+                        data: {
+                            service: "wfs",
+                            version: "1.1.0",
+                            request: "GetFeature",
+                            typeNames:"cadastre:CP.CadastralParcel",
+                            srsName: "EPSG:2154",
+                            outputFormat:"text/javascript",
+                            bbox: (x-0.5)+","+(y-0.5)+","+(x+0.5)+","+(y+0.5)                                              
+                        },
+                        dataType: "jsonp",
+                        contentType: "application/json",
+                        jsonp: false,
+                        jsonpCallback: "parseResponse",        
+                        success: function (data) {                            
+                            if (data.features && data.features.length > 0) {                    
+                               _parseJsonFeature(data.features);
+                            }
+                        }
+                     });
                 }
             }
         });
-        
     };
 
     
@@ -111,11 +151,7 @@
          *
          */
 
-        init: function () {
-        
-            /*Proj4js.defs["EPSG:3857"] = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
-            Proj4js.defs["EPSG:2154"] = "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
-            Proj4js.defs["EPSG:4326"] = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";*/
+        init: function () {           
             
             _l93 = ol.proj.get('EPSG:2154');
             _l93.setExtent([-378305.81, 6093283.21, 1212610.74, 7186901.68]);
@@ -162,7 +198,7 @@
             var ortho = new ol.layer.Tile({
               visible: false,
               source: new ol.source.WMTS({
-                url:  "../wmts",
+                url:  "http://kartenn.region-bretagne.fr/wmts",
                 layer: "ORTHOIMAGERY.ORTHOPHOTOS",
                 matrixSet: matrixset,
                 style: "normal",
@@ -180,7 +216,7 @@
             var scan = new ol.layer.Tile({
               visible: false,
               source: new ol.source.WMTS({
-                url:  "../wmts",
+                url:  "http://kartenn.region-bretagne.fr/wmts",
                 layer: "GEOGRAPHICALGRIDSYSTEMS.MAPS",
                 matrixSet: matrixset,
                 style: "normal",
@@ -198,7 +234,7 @@
             var cadastre = new ol.layer.Tile({
               visible: false,
               source: new ol.source.WMTS({
-                url:  "../wmts",
+                url:  "http://kartenn.region-bretagne.fr/wmts",
                 layer: "CADASTRALPARCELS.PARCELS",
                 matrixSet: matrixset,
                 style: "bdparcellaire",
@@ -280,14 +316,9 @@
                     }
                 });
                 if (oldfeature) {_sourcePoint.removeFeature(oldfeature);}
-                var pos=event.feature.getGeometry().getCoordinates();
-                /*var src = new Proj4js.Proj('EPSG:3857');
-                var dest = new Proj4js.Proj('EPSG:2154'); 
-                var p = new Proj4js.Point(pos[0],pos[1]);                
-                Proj4js.transform(src, dest, p);*/
+                var pos=event.feature.getGeometry().getCoordinates();                
                 var p = ol.proj.transform(pos,_projection,_l93);
-                _getGeometryBuilding(p[0],p[1]);  
-                //$("#fichelabel").text("Position : " + p);
+                _getCadastreGeometry(p[0],p[1]);
             });
             
             var _geolocation = new ol.Geolocation({
