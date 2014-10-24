@@ -423,6 +423,29 @@
             _map.getView().setZoom(zoom);
         },
         
+        /**
+         * Public Method: zoomToCoordinates
+         *
+         * parameter coordinates - [array]
+         * [Lon, lat] for a point or [xmin, ymin, xmax, ymax] for bbox         
+         */
+        
+        zoomToCoordinates: function (coordinates) {
+            if (coordinates instanceof Array) {
+                switch(coordinates.length) {
+                    case 2:
+                        // zoom to point
+                        _map.getView().setCenter(ol.proj.transform(coordinates, 'EPSG:4326', 'EPSG:3857'));
+                        _map.getView().setZoom(15);
+                        break;
+                    case 4:
+                        // zoom to bbox
+                        _map.getView().fitExtent(ol.proj.transformExtent(coordinates, 'EPSG:4326', 'EPSG:3857'), _map.getSize());
+                        break;                   
+                }
+            }            
+        },
+        
         geoCompletion: function (val) {
             var url = "http://api.geonames.org/searchJSON?";
             var q = (val)?val:$("#search").val();            
