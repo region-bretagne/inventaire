@@ -313,6 +313,9 @@
 
             _map = new ol.Map({
               target: "map",
+              controls: ol.control.defaults().extend([
+                new ol.control.FullScreen()
+              ]),
               layers: _layers,
               view: new ol.View({
                 projection: _projection,
@@ -444,6 +447,14 @@
                         break;                   
                 }
             }            
+        },
+        
+        render: function () {
+            _map.render();
+        },
+        
+        renderSync: function () {
+            _map.renderSync();
         },
         
         geoCompletion: function (val) {
